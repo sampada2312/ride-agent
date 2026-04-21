@@ -92,6 +92,16 @@ describe("ride agent flow", () => {
     expect(response.suggestions?.[0]?.prompt).toMatch(/to Pier 39$/);
   });
 
+  it("preserves the valid pickup when the dropoff is invalid", async () => {
+    const response = await handleChat({
+      message: "Book a ride from Mission Dolores Park to Atlantis Ave"
+    });
+
+    expect(response.kind).toBe("error");
+    expect(response.suggestions?.length).toBeGreaterThan(0);
+    expect(response.suggestions?.[0]?.prompt).toMatch(/^from Mission Dolores Park to /);
+  });
+
   it("returns recovery suggestions for ambiguous comma-separated input", async () => {
     const response = await handleChat({
       message: "Pier 39, SFO Airport, Salesforce Tower"
@@ -118,6 +128,38 @@ describe("ride agent flow", () => {
     }
 
     expect(selected.proposal.option.productName).toBe("Comfort");
+  });
+
+  it("rejecting one prepared option and selecting another prepares the new option", async () => {
+    const first = await handleChat({
+      message: "Book a ride from Mission Dolores Park to Salesforce Tower"
+    });
+
+    expect(first.kind).toBe("confirmation_required");
+    if (first.kind !== "confirmation_required") {
+      return;
+    }
+
+    const rejected = await handleConfirmation({
+      sessionId: first.session.sessionId,
+      proposalId: first.proposal.proposalId,
+      approved: false
+    });
+
+    expect(rejected.session.pendingProposal).toBeUndefined();
+
+    const reselection = await handleChat({
+      sessionId: first.session.sessionId,
+      message: "Book UberXL"
+    });
+
+    expect(reselection.kind).toBe("confirmation_required");
+    if (reselection.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(reselection.proposal.option.productName).toBe("UberXL");
+    expect(reselection.session.pendingProposal?.option.productName).toBe("UberXL");
   });
 
   it("tracks and cancels an active ride", async () => {

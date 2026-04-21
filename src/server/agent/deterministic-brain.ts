@@ -31,9 +31,14 @@ function formatMoney(cents: number) {
 
 function findSelectedOption(options: RideOption[], message: string) {
   const lower = message.toLowerCase();
+  const bySpecificity = [...options].sort(
+    (left, right) => right.productName.length - left.productName.length
+  );
+
   return (
-    options.find((option) => lower.includes(option.productName.toLowerCase())) ??
-    options[0]
+    bySpecificity.find((option) =>
+      lower.includes(option.productName.toLowerCase())
+    ) ?? options[0]
   );
 }
 
@@ -184,6 +189,34 @@ export class DeterministicRideBrain implements AgentBrain {
     session.messages.push(createMessage("user", input));
 
     try {
+      if (
+        session.rideOptions.length > 0 &&
+        (normalized.includes("cheapest") ||
+          normalized.includes("comfort") ||
+          normalized.includes("uberx") ||
+          normalized.includes("uberxl"))
+      ) {
+        const selectedOption = findSelectedOption(session.rideOptions, normalized);
+        if (!session.lastValidatedPickup || !session.lastValidatedDropoff) {
+          throw new Error("Ride locations are missing for the selected option.");
+        }
+
+        const proposalResult = await prepareBookingForConfirmation(context, {
+          pickup: session.lastValidatedPickup,
+          dropoff: session.lastValidatedDropoff,
+          option: selectedOption
+        });
+        setProposal(session, proposalResult.result);
+        const text = `I prepared ${selectedOption.productName} for ${formatMoney(selectedOption.priceCents)}. Review it in the confirmation gate and confirm to book.`;
+        session.messages.push(createMessage("agent", text));
+        return {
+          kind: "confirmation_required",
+          session,
+          text,
+          proposal: proposalResult.result
+        };
+      }
+
       if (
         session.activeRide &&
         (normalized.includes("track") ||
@@ -358,34 +391,6 @@ export class DeterministicRideBrain implements AgentBrain {
             )
           };
         }
-      }
-
-      if (
-        session.rideOptions.length > 0 &&
-        (normalized.includes("cheapest") ||
-          normalized.includes("comfort") ||
-          normalized.includes("uberx") ||
-          normalized.includes("uberxl"))
-      ) {
-        const selectedOption = findSelectedOption(session.rideOptions, normalized);
-        if (!session.lastValidatedPickup || !session.lastValidatedDropoff) {
-          throw new Error("Ride locations are missing for the selected option.");
-        }
-
-        const proposalResult = await prepareBookingForConfirmation(context, {
-          pickup: session.lastValidatedPickup,
-          dropoff: session.lastValidatedDropoff,
-          option: selectedOption
-        });
-        setProposal(session, proposalResult.result);
-        const text = `I prepared ${selectedOption.productName} for ${formatMoney(selectedOption.priceCents)}. Use the confirmation gate to book it.`;
-        session.messages.push(createMessage("agent", text));
-        return {
-          kind: "confirmation_required",
-          session,
-          text,
-          proposal: proposalResult.result
-        };
       }
 
       if (input.includes(",") && !normalized.includes(" to ")) {

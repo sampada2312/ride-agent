@@ -200,7 +200,8 @@ function ActionLog({
       </div>
 
       {isExpanded ? (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-3">
           {entries.length === 0 ? (
             <p className="text-sm text-slate-500">No actions recorded yet.</p>
           ) : null}
@@ -259,6 +260,7 @@ function ActionLog({
                 </div>
               </article>
             ))}
+          </div>
         </div>
       ) : null}
     </div>
@@ -290,6 +292,9 @@ function ConfirmationGatePanel({
             </p>
             <p className="mt-2 font-display text-2xl">
               {pendingProposal.option.productName}
+            </p>
+            <p className="mt-2 inline-flex rounded-full bg-amber-400/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200">
+              Prepared option selected
             </p>
             <p className="mt-2 break-words text-sm text-white/80">
               {pendingProposal.summary}
@@ -430,6 +435,9 @@ export function RideAgentApp() {
   }
 
   async function selectRideOption(option: RideOption) {
+    if (pendingProposal?.option.optionId === option.optionId) {
+      return;
+    }
     await sendMessage(`Book ${option.productName}`);
   }
 
