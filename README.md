@@ -1,6 +1,6 @@
 # Ride-Agent
 
-Ride-Agent is a take-home demo of an AI assistant that can discover ride options, compare prices, prepare a ride booking, track an active ride, and cancel it. The key safety rule is simple: the chat agent can never directly book a ride. It can only prepare a booking proposal for review, and booking is executed exclusively through a separate confirmation gate.
+Ride-Agent is an AI assistant that can discover ride options, compare prices, prepare a ride booking, track an active ride, and cancel it. The key safety rule is simple: the chat agent can never directly book a ride. It can only prepare a booking proposal for review, and booking is executed exclusively through a separate confirmation gate.
 
 ## How To Run In Under 3 Minutes
 
@@ -30,7 +30,7 @@ Set `OPENAI_API_KEY` if you want to enable the optional OpenAI-backed brain. Wit
 
 ## Architecture
 
-The code is intentionally split along the boundaries the assignment asks for:
+The code is intentionally split along the following boundaries for:
 
 - `src/server/adapters`
   - Platform adapter contract plus `MockUberAdapter`
@@ -53,7 +53,7 @@ The code is intentionally split along the boundaries the assignment asks for:
 
 ## Why The Uber Backend Is Mocked
 
-For a take-home, a mock backend keeps the demo realistic without spending time on marketplace onboarding, auth, rate limits, sandbox access, or unreliable external dependencies. The important design choice is that the rest of the system does not know it is talking to a mock. Everything goes through the `RideMarketplaceAdapter` interface.
+A mock backend keeps the demo realistic without spending time on marketplace onboarding, auth, rate limits, sandbox access, or unreliable external dependencies. The important design choice is that the rest of the system does not know it is talking to a mock. Everything goes through the `RideMarketplaceAdapter` interface.
 
 That means a Lyft adapter or another marketplace adapter would plug into the same contract:
 
@@ -110,6 +110,6 @@ npm run test
 
 ## Notes
 
-- The mock backend uses a fixed set of recognizable San Francisco locations so the demo stays deterministic and easy to review.
+- The backend uses a fixed set of recognizable San Francisco locations so the demo stays deterministic and easy to review.
 - Session state is in-memory for fast local setup; the audit log is persisted to disk for inspection.
 - The scope stays intentionally tight: no fancy NLP, no background jobs, and no unnecessary infrastructure.
