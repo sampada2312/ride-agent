@@ -74,11 +74,12 @@ export type ActionLogEntry = {
   id: string;
   sessionId: string;
   timestamp: string;
-  toolName: string;
-  requested: Record<string, unknown>;
+  action: string;
+  userRequest: string;
   verified: Record<string, unknown>;
   executed: Record<string, unknown>;
-  happened: Record<string, unknown>;
+  outcome: Record<string, unknown>;
+  success: boolean;
 };
 
 export type SessionState = {

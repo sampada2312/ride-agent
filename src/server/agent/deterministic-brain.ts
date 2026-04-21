@@ -12,7 +12,7 @@ import {
 import {
   cancelRide,
   discoverRideOptions,
-  proposeBooking,
+  prepareBookingForConfirmation,
   trackRide,
   validateLocations
 } from "@/server/tools";
@@ -170,7 +170,7 @@ export class DeterministicRideBrain implements AgentBrain {
         }
 
         const selectedOption = findSelectedOption(quotes.result, normalized);
-        const proposalResult = await proposeBooking(context, {
+        const proposalResult = await prepareBookingForConfirmation(context, {
           pickup: validated.result.pickup,
           dropoff: validated.result.dropoff,
           option: selectedOption
@@ -203,7 +203,7 @@ export class DeterministicRideBrain implements AgentBrain {
           throw new Error("Ride locations are missing for the selected option.");
         }
 
-        const proposalResult = await proposeBooking(context, {
+        const proposalResult = await prepareBookingForConfirmation(context, {
           pickup: session.lastValidatedPickup,
           dropoff: session.lastValidatedDropoff,
           option: selectedOption

@@ -20,6 +20,7 @@ export type CancelRideResult = {
   feeChargedCents: number;
 };
 
+// The rest of the system talks to ride marketplaces only through this adapter contract.
 export interface RideMarketplaceAdapter {
   readonly marketplaceName: string;
   validateLocation(input: string): Promise<ValidatedLocation>;

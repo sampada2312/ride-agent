@@ -19,6 +19,14 @@ describe("ride agent flow", () => {
     expect(first.session.pendingProposal).toBeDefined();
     expect(first.session.activeRide).toBeUndefined();
 
+    const chatOnlyAttempt = await handleChat({
+      sessionId: first.session.sessionId,
+      message: "yes, book it now"
+    });
+
+    expect(chatOnlyAttempt.kind).toBe("confirmation_required");
+    expect(chatOnlyAttempt.session.activeRide).toBeUndefined();
+
     const reject = await handleConfirmation({
       sessionId: first.session.sessionId,
       proposalId: first.session.pendingProposal!.proposalId,
@@ -65,11 +73,12 @@ describe("ride agent flow", () => {
     expect(response.kind).toBe("error");
     expect(response.session.actionLog).toHaveLength(1);
     const entry = response.session.actionLog[0];
-    expect(entry).toHaveProperty("requested");
+    expect(entry).toHaveProperty("timestamp");
+    expect(entry).toHaveProperty("userRequest");
     expect(entry).toHaveProperty("verified");
     expect(entry).toHaveProperty("executed");
-    expect(entry).toHaveProperty("happened");
-    expect(entry.happened.ok).toBe(false);
+    expect(entry).toHaveProperty("outcome");
+    expect(entry.success).toBe(false);
   });
 
   it("tracks and cancels an active ride", async () => {
@@ -95,5 +104,27 @@ describe("ride agent flow", () => {
     });
 
     expect(cancelled.text).toMatch(/cancelled/i);
+  });
+
+  it("records confirmation-gate approval as a separate audited action", async () => {
+    const proposal = await handleChat({
+      message: "Book a ride from Mission Dolores Park to Salesforce Tower"
+    });
+
+    const confirm = await handleConfirmation({
+      sessionId: proposal.session.sessionId,
+      proposalId: proposal.session.pendingProposal!.proposalId,
+      approved: true
+    });
+
+    const gateEntry = confirm.session.actionLog.find(
+      (entry) => entry.action === "confirmation_gate_decision"
+    );
+
+    expect(gateEntry).toBeDefined();
+    expect(gateEntry?.verified).toMatchObject({
+      explicitUserApproval: true,
+      bookingOnlyAllowedHere: true
+    });
   });
 });
