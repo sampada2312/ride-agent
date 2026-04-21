@@ -89,6 +89,7 @@ describe("ride agent flow", () => {
     expect(entry).toHaveProperty("outcome");
     expect(entry.success).toBe(false);
     expect(response.suggestions?.length).toBeGreaterThan(0);
+    expect(response.suggestions?.[0]?.prompt).toMatch(/to Pier 39$/);
   });
 
   it("returns recovery suggestions for ambiguous comma-separated input", async () => {
@@ -99,6 +100,24 @@ describe("ride agent flow", () => {
     expect(response.kind).toBe("message");
     expect(response.text).toMatch(/not sure which one is pickup versus dropoff/i);
     expect(response.suggestions?.length).toBeGreaterThan(0);
+  });
+
+  it("can prepare a specific option after comparison", async () => {
+    const compared = await handleChat({
+      message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+    });
+
+    const selected = await handleChat({
+      sessionId: compared.session.sessionId,
+      message: "Book Comfort"
+    });
+
+    expect(selected.kind).toBe("confirmation_required");
+    if (selected.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(selected.proposal.option.productName).toBe("Comfort");
   });
 
   it("tracks and cancels an active ride", async () => {

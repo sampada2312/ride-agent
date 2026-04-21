@@ -1,13 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import {
-  startTransition,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActionLogEntry,
   ChatResponse,
@@ -41,7 +35,11 @@ function renderFieldValue(value: unknown) {
     return "none";
   }
 
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     return String(value);
   }
 
@@ -72,9 +70,30 @@ function Bubble({ message }: { message: ConversationMessage }) {
   );
 }
 
-function QuoteCard({ option }: { option: RideOption }) {
+function QuoteCard({
+  option,
+  onSelect,
+  isSelected,
+  isLoading
+}: {
+  option: RideOption;
+  onSelect: (option: RideOption) => Promise<void>;
+  isSelected: boolean;
+  isLoading: boolean;
+}) {
   return (
-    <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
+    <button
+      type="button"
+      disabled={isLoading}
+      onClick={() => void onSelect(option)}
+      className={clsx(
+        "w-full rounded-[22px] border bg-white p-4 text-left shadow-sm transition",
+        isSelected
+          ? "border-amber-400 ring-2 ring-amber-200"
+          : "border-slate-200 hover:border-ember hover:shadow-md",
+        isLoading && "cursor-not-allowed opacity-70"
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate font-display text-lg text-ink">
@@ -101,7 +120,12 @@ function QuoteCard({ option }: { option: RideOption }) {
           </span>
         ) : null}
       </div>
-    </div>
+      <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-slate-500">
+        {isSelected
+          ? "Prepared in confirmation gate"
+          : "Click to prepare this option"}
+      </p>
+    </button>
   );
 }
 
@@ -140,67 +164,103 @@ function AuditFieldGroup({
   );
 }
 
-function ActionLog({ entries }: { entries: ActionLogEntry[] }) {
+function ActionLog({
+  entries,
+  isExpanded,
+  onToggle
+}: {
+  entries: ActionLogEntry[];
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const latestEntry = entries.at(-1);
+
   return (
-    <div className="space-y-3">
-      {entries.length === 0 ? (
-        <p className="text-sm text-slate-500">No actions recorded yet.</p>
-      ) : null}
-      {entries
-        .slice()
-        .reverse()
-        .map((entry) => (
-          <article
-            key={entry.id}
-            className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm"
+    <div>
+      <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+              Audit Summary
+            </p>
+            <p className="mt-1 text-sm text-slate-700">
+              {entries.length === 0
+                ? "No actions recorded yet."
+                : `${entries.length} actions recorded. Latest: ${latestEntry?.action}.`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition hover:border-ember hover:text-ember"
           >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                  Action
-                </p>
-                <h3 className="mt-1 break-words font-medium text-ink">
-                  {entry.action}
-                </h3>
-              </div>
-              <div
-                className={clsx(
-                  "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                  entry.success
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-rose-100 text-rose-700"
-                )}
+            {isExpanded ? "Hide audit log" : "View audit log"}
+          </button>
+        </div>
+      </div>
+
+      {isExpanded ? (
+        <div className="mt-4 space-y-3">
+          {entries.length === 0 ? (
+            <p className="text-sm text-slate-500">No actions recorded yet.</p>
+          ) : null}
+          {entries
+            .slice()
+            .reverse()
+            .map((entry) => (
+              <article
+                key={entry.id}
+                className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm"
               >
-                {entry.success ? "success" : "failure"}
-              </div>
-            </div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+                      Action
+                    </p>
+                    <h3 className="mt-1 break-words font-medium text-ink">
+                      {entry.action}
+                    </h3>
+                  </div>
+                  <div
+                    className={clsx(
+                      "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                      entry.success
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-700"
+                    )}
+                  >
+                    {entry.success ? "success" : "failure"}
+                  </div>
+                </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Timestamp
-                </p>
-                <p className="mt-2 text-sm text-slate-700">
-                  {formatTimestamp(entry.timestamp)} UTC
-                </p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Request
-                </p>
-                <p className="mt-2 break-words text-sm leading-6 text-slate-700">
-                  {entry.userRequest}
-                </p>
-              </div>
-            </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                      Timestamp
+                    </p>
+                    <p className="mt-2 text-sm text-slate-700">
+                      {formatTimestamp(entry.timestamp)} UTC
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                      Request
+                    </p>
+                    <p className="mt-2 break-words text-sm leading-6 text-slate-700">
+                      {entry.userRequest}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="mt-3 grid gap-3">
-              <AuditFieldGroup label="Verified" data={entry.verified} />
-              <AuditFieldGroup label="Executed" data={entry.executed} />
-              <AuditFieldGroup label="Outcome" data={entry.outcome} />
-            </div>
-          </article>
-        ))}
+                <div className="mt-3 grid gap-3">
+                  <AuditFieldGroup label="Verified" data={entry.verified} />
+                  <AuditFieldGroup label="Executed" data={entry.executed} />
+                  <AuditFieldGroup label="Outcome" data={entry.outcome} />
+                </div>
+              </article>
+            ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -302,6 +362,7 @@ export function RideAgentApp() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<ChatResponse | null>(null);
+  const [isAuditLogExpanded, setIsAuditLogExpanded] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
   const options = session?.rideOptions ?? [];
@@ -313,7 +374,7 @@ export function RideAgentApp() {
     transcriptEndRef.current?.scrollIntoView({
       block: "end"
     });
-  }, [messages]);
+  }, [messages, lastResponse?.suggestions]);
 
   async function sendMessage(text: string) {
     setIsLoading(true);
@@ -366,6 +427,10 @@ export function RideAgentApp() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function selectRideOption(option: RideOption) {
+    await sendMessage(`Book ${option.productName}`);
   }
 
   return (
@@ -481,7 +546,15 @@ export function RideAgentApp() {
                   <h2 className="font-display text-2xl text-ink">Current Options</h2>
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     {options.map((option) => (
-                      <QuoteCard key={option.optionId} option={option} />
+                      <QuoteCard
+                        key={option.optionId}
+                        option={option}
+                        onSelect={selectRideOption}
+                        isSelected={
+                          pendingProposal?.option.optionId === option.optionId
+                        }
+                        isLoading={isLoading}
+                      />
                     ))}
                   </div>
                 </div>
@@ -518,8 +591,12 @@ export function RideAgentApp() {
             Each record includes the action, timestamp, request, verified checks,
             executed work, final outcome, and whether it succeeded or failed.
           </p>
-          <div className="mt-6 max-h-[78vh] overflow-auto pr-1">
-            <ActionLog entries={session?.actionLog ?? []} />
+          <div className="mt-6">
+            <ActionLog
+              entries={session?.actionLog ?? []}
+              isExpanded={isAuditLogExpanded}
+              onToggle={() => setIsAuditLogExpanded((value) => !value)}
+            />
           </div>
         </section>
       </div>

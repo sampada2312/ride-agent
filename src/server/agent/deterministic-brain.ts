@@ -84,14 +84,14 @@ function buildLocationRetrySuggestions(input: {
   const prompts = VALID_LOCATIONS.map((location) => {
     if (input.pickup && !input.dropoff) {
       return {
-        label: location,
+        label: `Replace dropoff with ${location}`,
         prompt: `from ${input.pickup} to ${location}`
       };
     }
 
     if (!input.pickup && input.dropoff) {
       return {
-        label: location,
+        label: `Replace pickup with ${location}`,
         prompt: `from ${location} to ${input.dropoff}`
       };
     }
