@@ -65,6 +65,15 @@ describe("ride agent flow", () => {
     expect(response.text).toMatch(/current Uber options/);
   });
 
+  it("accepts a simpler '<pickup> to <dropoff>' route format", async () => {
+    const response = await handleChat({
+      message: "Mission Dolores Park to Salesforce Tower"
+    });
+
+    expect(response.kind).toBe("confirmation_required");
+    expect(response.session.pendingProposal).toBeDefined();
+  });
+
   it("logs failed address verification with the required audit fields", async () => {
     const response = await handleChat({
       message: "Book a ride from Atlantis Ave to Pier 39"
@@ -79,6 +88,17 @@ describe("ride agent flow", () => {
     expect(entry).toHaveProperty("executed");
     expect(entry).toHaveProperty("outcome");
     expect(entry.success).toBe(false);
+    expect(response.suggestions?.length).toBeGreaterThan(0);
+  });
+
+  it("returns recovery suggestions for ambiguous comma-separated input", async () => {
+    const response = await handleChat({
+      message: "Pier 39, SFO Airport, Salesforce Tower"
+    });
+
+    expect(response.kind).toBe("message");
+    expect(response.text).toMatch(/not sure which one is pickup versus dropoff/i);
+    expect(response.suggestions?.length).toBeGreaterThan(0);
   });
 
   it("tracks and cancels an active ride", async () => {

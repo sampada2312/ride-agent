@@ -7,6 +7,11 @@ export type ConversationMessage = {
   createdAt: string;
 };
 
+export type ChatSuggestion = {
+  label: string;
+  prompt: string;
+};
+
 export type Coordinates = {
   lat: number;
   lng: number;
@@ -101,29 +106,34 @@ export type ChatResponse =
       kind: "message";
       session: SessionState;
       text: string;
+      suggestions?: ChatSuggestion[];
     }
   | {
       kind: "quote_options";
       session: SessionState;
       text: string;
       options: RideOption[];
+      suggestions?: ChatSuggestion[];
     }
   | {
       kind: "confirmation_required";
       session: SessionState;
       text: string;
       proposal: ConfirmationProposal;
+      suggestions?: ChatSuggestion[];
     }
   | {
       kind: "tracking_update";
       session: SessionState;
       text: string;
       ride: BookedRide;
+      suggestions?: ChatSuggestion[];
     }
   | {
       kind: "error";
       session: SessionState;
       text: string;
+      suggestions?: ChatSuggestion[];
     };
 
 export type ToolResult<T> = {
