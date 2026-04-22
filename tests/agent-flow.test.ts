@@ -130,6 +130,46 @@ describe("ride agent flow", () => {
     expect(selected.proposal.option.productName).toBe("Comfort");
   });
 
+  it("can prepare the last option after comparison", async () => {
+    const compared = await handleChat({
+      message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+    });
+
+    const selected = await handleChat({
+      sessionId: compared.session.sessionId,
+      message: "Book UberXL"
+    });
+
+    expect(selected.kind).toBe("confirmation_required");
+    if (selected.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(selected.proposal.option.productName).toBe("UberXL");
+  });
+
+  it("can prepare every compare option explicitly", async () => {
+    const products = ["UberX", "Comfort", "UberXL"];
+
+    for (const product of products) {
+      const compared = await handleChat({
+        message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+      });
+
+      const selected = await handleChat({
+        sessionId: compared.session.sessionId,
+        message: `Book ${product}`
+      });
+
+      expect(selected.kind).toBe("confirmation_required");
+      if (selected.kind !== "confirmation_required") {
+        return;
+      }
+
+      expect(selected.proposal.option.productName).toBe(product);
+    }
+  });
+
   it("rejecting one prepared option and selecting another prepares the new option", async () => {
     const first = await handleChat({
       message: "Book a ride from Mission Dolores Park to Salesforce Tower"

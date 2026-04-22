@@ -475,7 +475,7 @@ export function RideAgentApp() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_32%),linear-gradient(180deg,_#fffaf5_0%,_#f6efe4_55%,_#efe6d8_100%)] px-4 py-4 text-slate-900 sm:px-6 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:h-[calc(100vh-2rem)] lg:grid-cols-[1.25fr_0.75fr]">
+      <div className="mx-auto grid max-w-[1500px] gap-6 lg:h-[calc(100vh-2rem)] lg:grid-cols-[1.28fr_0.82fr]">
         <section className="flex min-h-0 flex-col overflow-hidden rounded-[36px] border border-white/70 bg-white/70 shadow-panel backdrop-blur">
           <div className="border-b border-slate-200/80 px-5 py-5 sm:px-6">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">
@@ -484,17 +484,13 @@ export function RideAgentApp() {
             <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-4xl">
               AI ride booking
             </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Discover, compare, prepare, track, and cancel rides. Booking only
-              happens after explicit confirmation.
-            </p>
           </div>
 
           <div className="grid min-h-0 flex-1 gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_320px] sm:px-6">
             <div className="flex min-h-0 min-w-0 flex-col gap-4">
               <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                <span className="font-semibold">Safety rule:</span> chat can
-                prepare, but only confirmation can book.
+                <span className="font-semibold">Safety rule:</span> Chat prepares.
+                Confirmation books.
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -582,7 +578,7 @@ export function RideAgentApp() {
               {options.length > 0 ? (
                 <div className="min-h-0 space-y-3">
                   <h2 className="font-display text-2xl text-ink">Current Options</h2>
-                  <div className="grid max-h-[34vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="grid max-h-[34vh] gap-3 overflow-y-auto pb-4 pr-1 scroll-pb-4 sm:grid-cols-2 xl:grid-cols-1">
                     {options.map((option) => (
                       <QuoteCard
                         key={option.optionId}
