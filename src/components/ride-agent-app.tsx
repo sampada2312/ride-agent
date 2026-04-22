@@ -281,26 +281,26 @@ function ConfirmationGatePanel({
   onCancel: () => Promise<void>;
 }) {
   return (
-    <div className="rounded-[28px] bg-ink p-5 text-white shadow-sm">
+    <div className="rounded-[26px] bg-ink p-4 text-white shadow-sm">
       <p className="text-xs uppercase tracking-[0.35em] text-white/60">
         Confirmation Gate
       </p>
-      <h2 className="mt-3 font-display text-2xl leading-tight">
+      <h2 className="mt-2 font-display text-xl leading-tight sm:text-2xl">
         Confirmation required
       </h2>
       {activeRide ? (
-        <div className="mt-4 space-y-4">
-          <div className="rounded-[22px] bg-white/10 p-4">
+        <div className="mt-3 space-y-3">
+          <div className="rounded-[20px] bg-white/10 p-3.5">
             <p className="text-[10px] uppercase tracking-[0.25em] text-white/60">
               Active Ride
             </p>
-            <p className="mt-2 font-display text-2xl capitalize">
+            <p className="mt-2 font-display text-xl capitalize sm:text-2xl">
               {activeRide.phase.replaceAll("_", " ")}
             </p>
-            <p className="mt-2 text-sm text-white/80">
+            <p className="mt-2 break-words text-sm text-white/80">
               {activeRide.option.productName} with {activeRide.driver.name}
             </p>
-            <p className="mt-1 text-sm text-white/70">
+            <p className="mt-1 break-words text-sm text-white/70">
               {activeRide.driver.vehicle} • {activeRide.driver.licensePlate}
             </p>
           </div>
@@ -314,25 +314,25 @@ function ConfirmationGatePanel({
           </button>
         </div>
       ) : pendingProposal ? (
-        <div className="mt-4 space-y-4">
-          <div className="rounded-[22px] bg-white/10 p-4">
+        <div className="mt-3 space-y-3">
+          <div className="rounded-[20px] bg-white/10 p-3.5">
             <p className="text-[10px] uppercase tracking-[0.25em] text-white/60">
               Prepared Booking
             </p>
-            <p className="mt-2 font-display text-2xl">
+            <p className="mt-2 break-words font-display text-xl sm:text-2xl">
               {pendingProposal.option.productName}
             </p>
             <p className="mt-2 inline-flex rounded-full bg-amber-400/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200">
-              Prepared option selected
+              Prepared
             </p>
-            <p className="mt-2 break-words text-sm text-white/80">
+            <p className="mt-2 break-words text-sm leading-5 text-white/80">
               {pendingProposal.summary}
             </p>
             <p className="mt-2 text-xs text-white/60">
               Review and confirm to book.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             <button
               type="button"
               disabled={isLoading}
@@ -352,7 +352,7 @@ function ConfirmationGatePanel({
           </div>
         </div>
       ) : (
-        <div className="mt-4 rounded-[22px] bg-white/10 p-4 text-sm text-white/80">
+        <div className="mt-3 rounded-[20px] bg-white/10 p-3.5 text-sm text-white/80">
           No ride is ready yet. Choose an option to prepare it here.
         </div>
       )}
@@ -482,7 +482,7 @@ export function RideAgentApp() {
               Ride-Agent
             </p>
             <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-4xl">
-              AI ride booking, with booking locked behind review and approval.
+              AI ride booking
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
               Discover, compare, prepare, track, and cancel rides. Booking only
@@ -582,7 +582,7 @@ export function RideAgentApp() {
               {options.length > 0 ? (
                 <div className="min-h-0 space-y-3">
                   <h2 className="font-display text-2xl text-ink">Current Options</h2>
-                  <div className="grid max-h-[28vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="grid max-h-[34vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-1">
                     {options.map((option) => (
                       <QuoteCard
                         key={option.optionId}

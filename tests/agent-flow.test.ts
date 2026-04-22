@@ -187,6 +187,50 @@ describe("ride agent flow", () => {
     expect(cancelled.text).toMatch(/cancelled/i);
   });
 
+  it("allows preparing a fresh booking after cancelling an active ride", async () => {
+    const first = await handleChat({
+      message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+    });
+
+    const prepared = await handleChat({
+      sessionId: first.session.sessionId,
+      message: "Book UberX"
+    });
+
+    expect(prepared.kind).toBe("confirmation_required");
+    if (prepared.kind !== "confirmation_required") {
+      return;
+    }
+
+    const confirmed = await handleConfirmation({
+      sessionId: prepared.session.sessionId,
+      proposalId: prepared.proposal.proposalId,
+      approved: true
+    });
+
+    expect(confirmed.session.activeRide).toBeDefined();
+
+    const cancelled = await handleChat({
+      sessionId: confirmed.session.sessionId,
+      message: "Cancel the ride"
+    });
+
+    expect(cancelled.session.activeRide).toBeUndefined();
+
+    const rebound = await handleChat({
+      sessionId: confirmed.session.sessionId,
+      message: "Book Comfort"
+    });
+
+    expect(rebound.kind).toBe("confirmation_required");
+    if (rebound.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(rebound.proposal.option.productName).toBe("Comfort");
+    expect(rebound.session.pendingProposal?.option.productName).toBe("Comfort");
+  });
+
   it("records confirmation-gate approval as a separate audited action", async () => {
     const proposal = await handleChat({
       message: "Book a ride from Mission Dolores Park to Salesforce Tower"

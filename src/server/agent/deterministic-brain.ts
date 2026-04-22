@@ -1,4 +1,5 @@
 import {
+  clearActiveRide,
   clearProposal,
   createMessage,
   setProposal
@@ -237,7 +238,11 @@ export class DeterministicRideBrain implements AgentBrain {
         const { result } = await cancelRide(context, {
           rideId: session.activeRide.rideId
         });
-        session.activeRide = result.ride;
+        if (result.ride.phase === "cancelled") {
+          clearActiveRide(session);
+        } else {
+          session.activeRide = result.ride;
+        }
         const text =
           result.feeChargedCents > 0
             ? `The ride was cancelled. Fee charged: ${formatMoney(result.feeChargedCents)}.`
