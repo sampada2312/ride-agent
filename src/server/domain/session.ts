@@ -59,3 +59,8 @@ export function setActiveRide(session: SessionState, ride: BookedRide) {
   session.pendingProposal = undefined;
   touchSession(session);
 }
+
+export function clearActiveRide(session: SessionState) {
+  session.activeRide = undefined;
+  touchSession(session);
+}

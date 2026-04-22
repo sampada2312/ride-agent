@@ -62,7 +62,16 @@ describe("ride agent flow", () => {
     }
 
     expect(response.options).toHaveLength(3);
-    expect(response.text).toMatch(/current Uber options/);
+    expect(response.text).toMatch(/^Here are the current options:/);
+    expect(response.text).toMatch(/UberX — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/Comfort — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/UberXL — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/Choose one below and I’ll prepare it for confirmation\./);
+    expect(response.suggestions?.map((suggestion) => suggestion.label)).toEqual([
+      "UberX",
+      "Comfort",
+      "UberXL"
+    ]);
   });
 
   it("accepts a simpler '<pickup> to <dropoff>' route format", async () => {
@@ -130,6 +139,46 @@ describe("ride agent flow", () => {
     expect(selected.proposal.option.productName).toBe("Comfort");
   });
 
+  it("can prepare the last option after comparison", async () => {
+    const compared = await handleChat({
+      message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+    });
+
+    const selected = await handleChat({
+      sessionId: compared.session.sessionId,
+      message: "Book UberXL"
+    });
+
+    expect(selected.kind).toBe("confirmation_required");
+    if (selected.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(selected.proposal.option.productName).toBe("UberXL");
+  });
+
+  it("can prepare every compare option explicitly", async () => {
+    const products = ["UberX", "Comfort", "UberXL"];
+
+    for (const product of products) {
+      const compared = await handleChat({
+        message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+      });
+
+      const selected = await handleChat({
+        sessionId: compared.session.sessionId,
+        message: `Book ${product}`
+      });
+
+      expect(selected.kind).toBe("confirmation_required");
+      if (selected.kind !== "confirmation_required") {
+        return;
+      }
+
+      expect(selected.proposal.option.productName).toBe(product);
+    }
+  });
+
   it("rejecting one prepared option and selecting another prepares the new option", async () => {
     const first = await handleChat({
       message: "Book a ride from Mission Dolores Park to Salesforce Tower"
@@ -185,6 +234,50 @@ describe("ride agent flow", () => {
     });
 
     expect(cancelled.text).toMatch(/cancelled/i);
+  });
+
+  it("allows preparing a fresh booking after cancelling an active ride", async () => {
+    const first = await handleChat({
+      message: "Compare prices from 1 Market St, San Francisco to SFO Airport"
+    });
+
+    const prepared = await handleChat({
+      sessionId: first.session.sessionId,
+      message: "Book UberX"
+    });
+
+    expect(prepared.kind).toBe("confirmation_required");
+    if (prepared.kind !== "confirmation_required") {
+      return;
+    }
+
+    const confirmed = await handleConfirmation({
+      sessionId: prepared.session.sessionId,
+      proposalId: prepared.proposal.proposalId,
+      approved: true
+    });
+
+    expect(confirmed.session.activeRide).toBeDefined();
+
+    const cancelled = await handleChat({
+      sessionId: confirmed.session.sessionId,
+      message: "Cancel the ride"
+    });
+
+    expect(cancelled.session.activeRide).toBeUndefined();
+
+    const rebound = await handleChat({
+      sessionId: confirmed.session.sessionId,
+      message: "Book Comfort"
+    });
+
+    expect(rebound.kind).toBe("confirmation_required");
+    if (rebound.kind !== "confirmation_required") {
+      return;
+    }
+
+    expect(rebound.proposal.option.productName).toBe("Comfort");
+    expect(rebound.session.pendingProposal?.option.productName).toBe("Comfort");
   });
 
   it("records confirmation-gate approval as a separate audited action", async () => {

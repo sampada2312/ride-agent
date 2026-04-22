@@ -1,4 +1,5 @@
 import {
+  clearActiveRide,
   clearProposal,
   createMessage,
   setProposal
@@ -80,6 +81,21 @@ function optionSummary(options: RideOption[]) {
       return `${option.productName}: ${formatMoney(option.priceCents)} (${option.etaMinutes} min${surge})`;
     })
     .join(" | ");
+}
+
+function formatCompareOptions(options: RideOption[]) {
+  const lines = options.map((option) => {
+    return `${option.productName} — ${formatMoney(option.priceCents)}, ${option.etaMinutes} min`;
+  });
+
+  return `Here are the current options:\n${lines.join("\n")}\n\nChoose one below and I’ll prepare it for confirmation.`;
+}
+
+function buildCompareSuggestions(options: RideOption[]): ChatSuggestion[] {
+  return options.map((option) => ({
+    label: option.productName,
+    prompt: `Book ${option.productName}`
+  }));
 }
 
 function buildLocationRetrySuggestions(input: {
@@ -237,7 +253,11 @@ export class DeterministicRideBrain implements AgentBrain {
         const { result } = await cancelRide(context, {
           rideId: session.activeRide.rideId
         });
-        session.activeRide = result.ride;
+        if (result.ride.phase === "cancelled") {
+          clearActiveRide(session);
+        } else {
+          session.activeRide = result.ride;
+        }
         const text =
           result.feeChargedCents > 0
             ? `The ride was cancelled. Fee charged: ${formatMoney(result.feeChargedCents)}.`
@@ -275,14 +295,17 @@ export class DeterministicRideBrain implements AgentBrain {
         session.pendingProposal &&
         (normalized.includes("compare") || normalized.includes("options"))
       ) {
-        const text = `Current options: ${optionSummary(session.rideOptions)}. Tell me which one you want and I will prepare a fresh confirmation proposal.`;
+        const text = formatCompareOptions(session.rideOptions);
         session.messages.push(createMessage("agent", text));
-        return {
-          kind: "quote_options",
-          session,
-          text,
-          options: session.rideOptions
-        };
+        return responseWithSuggestions(
+          {
+            kind: "quote_options",
+            session,
+            text,
+            options: session.rideOptions
+          },
+          buildCompareSuggestions(session.rideOptions)
+        );
       }
 
       if (
@@ -332,7 +355,7 @@ export class DeterministicRideBrain implements AgentBrain {
           const compare =
             normalized.includes("compare") || normalized.includes("cheapest");
           if (compare) {
-            const text = `Here are the current ${context.adapter.marketplaceName} options: ${optionSummary(quotes.result)}. Tell me which one you want, or say "book the cheapest ride".`;
+            const text = formatCompareOptions(quotes.result);
             session.messages.push(createMessage("agent", text));
             return responseWithSuggestions(
               {
@@ -341,16 +364,7 @@ export class DeterministicRideBrain implements AgentBrain {
                 text,
                 options: quotes.result
               },
-              [
-                {
-                  label: "Book the cheapest ride",
-                  prompt: "Book the cheapest ride"
-                },
-                {
-                  label: "Pick Comfort",
-                  prompt: "Book Comfort"
-                }
-              ]
+              buildCompareSuggestions(quotes.result)
             );
           }
 

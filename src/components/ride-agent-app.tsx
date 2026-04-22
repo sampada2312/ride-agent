@@ -185,7 +185,7 @@ function ActionLog({
             </p>
             <p className="mt-1 text-sm text-slate-700">
               {entries.length === 0
-                ? "No actions recorded yet."
+                ? "No actions yet."
                 : `${entries.length} actions recorded. Latest: ${latestEntry?.action}.`}
             </p>
           </div>
@@ -202,64 +202,64 @@ function ActionLog({
       {isExpanded ? (
         <div className="mt-4 max-h-[70vh] overflow-y-auto pr-1">
           <div className="space-y-3">
-          {entries.length === 0 ? (
-            <p className="text-sm text-slate-500">No actions recorded yet.</p>
-          ) : null}
-          {entries
-            .slice()
-            .reverse()
-            .map((entry) => (
-              <article
-                key={entry.id}
-                className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                      Action
-                    </p>
-                    <h3 className="mt-1 break-words font-medium text-ink">
-                      {entry.action}
-                    </h3>
+            {entries.length === 0 ? (
+              <p className="text-sm text-slate-500">No actions yet.</p>
+            ) : null}
+            {entries
+              .slice()
+              .reverse()
+              .map((entry) => (
+                <article
+                  key={entry.id}
+                  className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+                        Action
+                      </p>
+                      <h3 className="mt-1 break-words font-medium text-ink">
+                        {entry.action}
+                      </h3>
+                    </div>
+                    <div
+                      className={clsx(
+                        "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                        entry.success
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-rose-100 text-rose-700"
+                      )}
+                    >
+                      {entry.success ? "success" : "failure"}
+                    </div>
                   </div>
-                  <div
-                    className={clsx(
-                      "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                      entry.success
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-rose-100 text-rose-700"
-                    )}
-                  >
-                    {entry.success ? "success" : "failure"}
-                  </div>
-                </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-slate-50 p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                      Timestamp
-                    </p>
-                    <p className="mt-2 text-sm text-slate-700">
-                      {formatTimestamp(entry.timestamp)} UTC
-                    </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                        Timestamp
+                      </p>
+                      <p className="mt-2 text-sm text-slate-700">
+                        {formatTimestamp(entry.timestamp)} UTC
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                        Request
+                      </p>
+                      <p className="mt-2 break-words text-sm leading-6 text-slate-700">
+                        {entry.userRequest}
+                      </p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                      Request
-                    </p>
-                    <p className="mt-2 break-words text-sm leading-6 text-slate-700">
-                      {entry.userRequest}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="mt-3 grid gap-3">
-                  <AuditFieldGroup label="Verified" data={entry.verified} />
-                  <AuditFieldGroup label="Executed" data={entry.executed} />
-                  <AuditFieldGroup label="Outcome" data={entry.outcome} />
-                </div>
-              </article>
-            ))}
+                  <div className="mt-3 grid gap-3">
+                    <AuditFieldGroup label="Verified" data={entry.verified} />
+                    <AuditFieldGroup label="Executed" data={entry.executed} />
+                    <AuditFieldGroup label="Outcome" data={entry.outcome} />
+                  </div>
+                </article>
+              ))}
           </div>
         </div>
       ) : null}
@@ -268,42 +268,71 @@ function ActionLog({
 }
 
 function ConfirmationGatePanel({
+  activeRide,
   pendingProposal,
   isLoading,
-  onDecision
+  onDecision,
+  onCancel
 }: {
+  activeRide?: SessionState["activeRide"];
   pendingProposal: SessionState["pendingProposal"];
   isLoading: boolean;
   onDecision: (approved: boolean) => Promise<void>;
+  onCancel: () => Promise<void>;
 }) {
   return (
-    <div className="rounded-[28px] bg-ink p-5 text-white shadow-sm">
+    <div className="rounded-[26px] bg-ink p-4 text-white shadow-sm">
       <p className="text-xs uppercase tracking-[0.35em] text-white/60">
         Confirmation Gate
       </p>
-      <h2 className="mt-3 font-display text-2xl leading-tight">
-        Chat can only prepare. This panel is the only booking path.
+      <h2 className="mt-2 font-display text-xl leading-tight sm:text-2xl">
+        Confirmation required
       </h2>
-      {pendingProposal ? (
-        <div className="mt-4 space-y-4">
-          <div className="rounded-[22px] bg-white/10 p-4">
+      {activeRide ? (
+        <div className="mt-3 space-y-3">
+          <div className="rounded-[20px] bg-white/10 p-3.5">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-white/60">
+              Active Ride
+            </p>
+            <p className="mt-2 font-display text-xl capitalize sm:text-2xl">
+              {activeRide.phase.replaceAll("_", " ")}
+            </p>
+            <p className="mt-2 break-words text-sm text-white/80">
+              {activeRide.option.productName} with {activeRide.driver.name}
+            </p>
+            <p className="mt-1 break-words text-sm text-white/70">
+              {activeRide.driver.vehicle} • {activeRide.driver.licensePlate}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => void onCancel()}
+            className="w-full rounded-full bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:opacity-60"
+          >
+            Cancel Ride
+          </button>
+        </div>
+      ) : pendingProposal ? (
+        <div className="mt-3 space-y-3">
+          <div className="rounded-[20px] bg-white/10 p-3.5">
             <p className="text-[10px] uppercase tracking-[0.25em] text-white/60">
               Prepared Booking
             </p>
-            <p className="mt-2 font-display text-2xl">
+            <p className="mt-2 break-words font-display text-xl sm:text-2xl">
               {pendingProposal.option.productName}
             </p>
             <p className="mt-2 inline-flex rounded-full bg-amber-400/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200">
-              Prepared option selected
+              Prepared
             </p>
-            <p className="mt-2 break-words text-sm text-white/80">
+            <p className="mt-2 break-words text-sm leading-5 text-white/80">
               {pendingProposal.summary}
             </p>
             <p className="mt-2 text-xs text-white/60">
-              Review the prepared booking here, then explicitly approve or reject it.
+              Review and confirm to book.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             <button
               type="button"
               disabled={isLoading}
@@ -323,9 +352,8 @@ function ConfirmationGatePanel({
           </div>
         </div>
       ) : (
-        <div className="mt-4 rounded-[22px] bg-white/10 p-4 text-sm text-white/80">
-          No prepared booking is waiting for review. The agent can gather quotes
-          and prepare a booking, but it cannot book anything until you act here.
+        <div className="mt-3 rounded-[20px] bg-white/10 p-3.5 text-sm text-white/80">
+          No ride is ready yet. Choose an option to prepare it here.
         </div>
       )}
     </div>
@@ -441,31 +469,28 @@ export function RideAgentApp() {
     await sendMessage(`Book ${option.productName}`);
   }
 
+  async function cancelActiveRide() {
+    await sendMessage("Cancel the ride");
+  }
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_32%),linear-gradient(180deg,_#fffaf5_0%,_#f6efe4_55%,_#efe6d8_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-        <section className="overflow-hidden rounded-[36px] border border-white/70 bg-white/70 shadow-panel backdrop-blur">
+    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_32%),linear-gradient(180deg,_#fffaf5_0%,_#f6efe4_55%,_#efe6d8_100%)] px-4 py-4 text-slate-900 sm:px-6 lg:px-10">
+      <div className="mx-auto grid max-w-[1500px] gap-6 lg:h-[calc(100vh-2rem)] lg:grid-cols-[1.28fr_0.82fr]">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-[36px] border border-white/70 bg-white/70 shadow-panel backdrop-blur">
           <div className="border-b border-slate-200/80 px-5 py-5 sm:px-6">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">
               Ride-Agent
             </p>
             <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-4xl">
-              AI ride booking, with booking locked behind review and approval.
+              AI ride booking
             </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              The agent discovers rides, compares prices, prepares a booking,
-              tracks rides, and cancels. It cannot directly book from chat. A
-              separate confirmation gate owns booking execution and every important
-              action is auditable.
-            </p>
           </div>
 
-          <div className="grid gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_320px] sm:px-6">
-            <div className="min-w-0 space-y-4">
+          <div className="grid min-h-0 flex-1 gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_320px] sm:px-6">
+            <div className="flex min-h-0 min-w-0 flex-col gap-4">
               <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                <span className="font-semibold">Safety rule:</span> the chat agent can
-                only prepare a booking proposal. It cannot create a ride until the
-                confirmation gate is explicitly approved.
+                <span className="font-semibold">Safety rule:</span> Chat prepares.
+                Confirmation books.
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -481,16 +506,15 @@ export function RideAgentApp() {
                 ))}
               </div>
 
-              <div className="flex h-[min(72vh,760px)] min-h-[520px] flex-col overflow-hidden rounded-[28px] bg-sand/60 ring-1 ring-slate-200">
-                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-sand/60 ring-1 ring-slate-200 lg:max-h-[calc(100vh-19rem)]">
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
                   <div className="flex min-h-full flex-col gap-3">
                     {messages.length === 0 ? (
                       <div className="m-auto max-w-sm text-center text-sm leading-6 text-slate-500">
-                        Start with a request like{" "}
+                        Try:{" "}
                         <span className="font-medium text-slate-700">
                           from Mission Dolores Park to Salesforce Tower
-                        </span>{" "}
-                        or ask to compare prices first.
+                        </span>
                       </div>
                     ) : null}
                     {messages.map((entry) => (
@@ -512,7 +536,7 @@ export function RideAgentApp() {
                   </div>
                 </div>
 
-                <div className="border-t border-slate-200 bg-white/85 p-4 backdrop-blur">
+                <div className="shrink-0 border-t border-slate-200 bg-white/85 p-4 backdrop-blur">
                   <form
                     className="flex flex-col gap-3 sm:flex-row"
                     onSubmit={(event) => {
@@ -527,7 +551,7 @@ export function RideAgentApp() {
                       value={message}
                       onChange={(event) => setMessage(event.target.value)}
                       rows={3}
-                      placeholder="Ask for a ride, compare prices, track a trip, or cancel."
+                      placeholder="Ask for a ride..."
                       className="min-h-24 flex-1 resize-none rounded-[24px] border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-ember"
                     />
                     <button
@@ -542,17 +566,19 @@ export function RideAgentApp() {
               </div>
             </div>
 
-            <aside className="min-w-0 space-y-4">
+            <aside className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden">
               <ConfirmationGatePanel
+                activeRide={activeRide}
                 pendingProposal={pendingProposal}
                 isLoading={isLoading}
                 onDecision={confirmProposal}
+                onCancel={cancelActiveRide}
               />
 
               {options.length > 0 ? (
-                <div className="space-y-3">
+                <div className="min-h-0 space-y-3">
                   <h2 className="font-display text-2xl text-ink">Current Options</h2>
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="grid max-h-[34vh] gap-3 overflow-y-auto pb-4 pr-1 scroll-pb-4 sm:grid-cols-2 xl:grid-cols-1">
                     {options.map((option) => (
                       <QuoteCard
                         key={option.optionId}
@@ -567,39 +593,21 @@ export function RideAgentApp() {
                   </div>
                 </div>
               ) : null}
-
-              {activeRide ? (
-                <div className="rounded-[28px] border border-moss/20 bg-moss/10 p-5">
-                  <p className="text-xs uppercase tracking-[0.35em] text-moss">
-                    Active Ride
-                  </p>
-                  <h2 className="mt-3 font-display text-2xl capitalize text-ink">
-                    {activeRide.phase.replaceAll("_", " ")}
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-700">
-                    {activeRide.driver.name} in a {activeRide.driver.vehicle}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Plate {activeRide.driver.licensePlate}
-                  </p>
-                </div>
-              ) : null}
             </aside>
           </div>
         </section>
 
-        <section className="rounded-[36px] border border-white/70 bg-white/70 p-5 shadow-panel backdrop-blur sm:p-6">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-[36px] border border-white/70 bg-white/70 p-5 shadow-panel backdrop-blur sm:p-6">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">
             Action Log
           </p>
           <h2 className="mt-3 font-display text-3xl text-ink">
-            Reviewer-friendly audit trail
+            Audit log
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Each record includes the action, timestamp, request, verified checks,
-            executed work, final outcome, and whether it succeeded or failed.
+            View what was requested, checked, executed, and what happened.
           </p>
-          <div className="mt-6">
+          <div className="mt-6 min-h-0 flex-1 overflow-hidden">
             <ActionLog
               entries={session?.actionLog ?? []}
               isExpanded={isAuditLogExpanded}
