@@ -10,4 +10,12 @@ Agent: Pricing is elevated because surge is active at x1.8 on this route. I can 
 
 User: Show the options again
 
-Agent: Current options: UberX: $53.38 (22 min, surge x1.8) | Comfort: $73.51 (24 min, surge x1.8) | UberXL: $89.69 (26 min, surge x1.8). Tell me which one you want and I will prepare a fresh confirmation proposal.
+Agent:
+Here are the current options:
+UberX — $53.38, 22 min
+Comfort — $73.51, 24 min
+UberXL — $89.69, 26 min
+
+Choose one below and I’ll prepare it for confirmation.
+
+UI: The compare view exposes clickable ride-option buttons so the user can swap away from the default prepared option before confirming.
