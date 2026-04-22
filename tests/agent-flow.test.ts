@@ -62,7 +62,16 @@ describe("ride agent flow", () => {
     }
 
     expect(response.options).toHaveLength(3);
-    expect(response.text).toMatch(/current Uber options/);
+    expect(response.text).toMatch(/^Here are the current options:/);
+    expect(response.text).toMatch(/UberX — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/Comfort — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/UberXL — \$\d+\.\d{2}, \d+ min/);
+    expect(response.text).toMatch(/Choose one below and I’ll prepare it for confirmation\./);
+    expect(response.suggestions?.map((suggestion) => suggestion.label)).toEqual([
+      "UberX",
+      "Comfort",
+      "UberXL"
+    ]);
   });
 
   it("accepts a simpler '<pickup> to <dropoff>' route format", async () => {
