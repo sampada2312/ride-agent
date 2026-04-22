@@ -1,6 +1,6 @@
 # Ride-Agent
 
-Ride-Agent is a Next.js ride-booking demo with an AI-assisted chat flow, a mocked marketplace adapter, and an explicit confirmation gate for booking execution. The assistant can discover ride options, compare prices, prepare a booking proposal, track an active ride, and cancel it, but it cannot directly book a ride on its own. Booking is executed exclusively through a separate confirmation step.
+Ride-Agent is a ride-booking demo with an AI-assisted chat flow, a mocked marketplace adapter, and an explicit confirmation gate. The assistant can discover ride options, compare prices, prepare a booking proposal, track an active ride, and cancel it, but it cannot directly book a ride. Booking happens only through a separate confirmation step.
 
 ## How To Run In Under 3 Minutes
 
@@ -11,14 +11,6 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-Optional:
-
-```bash
-echo "OPENAI_API_KEY=your_key_here" >> .env.local
-```
-
-Set `OPENAI_API_KEY` if you want to enable the optional OpenAI-backed brain. You can also set `OPENAI_MODEL` to override the default model. Without a key, the app runs locally with the deterministic demo agent.
-
 ## Project Summary
 
 - Single-repo Next.js 15 + React 19 + TypeScript app
@@ -26,6 +18,7 @@ Set `OPENAI_API_KEY` if you want to enable the optional OpenAI-backed brain. You
 - Route handlers for chat, confirmation, and session state
 - Mock Uber backend behind a swappable marketplace adapter
 - Agent/tool layer that discovers rides, compares options, and prepares bookings
+- Clickable ride options in both direct-booking and compare flows
 - Separate confirmation gate that alone can execute booking
 - Structured action log for every important action
 - Five reviewer-friendly transcripts, tests, and a short production writeup
@@ -76,6 +69,7 @@ The confirmation story is deliberately explicit in both code and UI:
 - Booking execution lives in `src/server/confirmation-gate`
 - The user must review the prepared booking and explicitly approve it in the confirmation flow
 - Rejecting the proposal clears it without creating a ride
+- Active rides can be cancelled from the UI without relying only on chat input
 
 This makes the safety boundary easy to inspect during review and easy to extend later with stronger auth, approvals, or idempotency.
 
@@ -118,3 +112,4 @@ npm run test:watch
 - Session state is kept in memory for fast local setup; the audit log is persisted to disk for inspection.
 - The optional OpenAI-backed brain layers natural-language responses on top of the deterministic booking flow instead of bypassing the safety boundary.
 - The scope stays intentionally tight: no background jobs, no external database, and no unnecessary infrastructure.
+- This is a local end-to-end demo designed to show architecture, safety, and workflow rather than a production integration with the real Uber app.
