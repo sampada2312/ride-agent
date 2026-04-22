@@ -1,6 +1,6 @@
 # Ride-Agent
 
-Ride-Agent is an AI assistant that can discover ride options, compare prices, prepare a ride booking, track an active ride, and cancel it. The key safety rule is simple: the chat agent can never directly book a ride. It can only prepare a booking proposal for review, and booking is executed exclusively through a separate confirmation gate.
+Ride-Agent is a Next.js ride-booking demo with an AI-assisted chat flow, a mocked marketplace adapter, and an explicit confirmation gate for booking execution. The assistant can discover ride options, compare prices, prepare a booking proposal, track an active ride, and cancel it, but it cannot directly book a ride on its own. Booking is executed exclusively through a separate confirmation step.
 
 ## How To Run In Under 3 Minutes
 
@@ -14,23 +14,25 @@ Open `http://localhost:3000`.
 Optional:
 
 ```bash
-cp .env.example .env.local
+echo "OPENAI_API_KEY=your_key_here" >> .env.local
 ```
 
-Set `OPENAI_API_KEY` if you want to enable the optional OpenAI-backed brain. Without a key, the app runs fully locally with the deterministic demo agent.
+Set `OPENAI_API_KEY` if you want to enable the optional OpenAI-backed brain. You can also set `OPENAI_MODEL` to override the default model. Without a key, the app runs locally with the deterministic demo agent.
 
 ## Project Summary
 
-- Single-repo Next.js + TypeScript demo
+- Single-repo Next.js 15 + React 19 + TypeScript app
+- App Router frontend with a reviewer-facing chat UI and confirmation panel
+- Route handlers for chat, confirmation, and session state
 - Mock Uber backend behind a swappable marketplace adapter
-- Agent/tool layer that discovers rides and prepares bookings
+- Agent/tool layer that discovers rides, compares options, and prepares bookings
 - Separate confirmation gate that alone can execute booking
 - Structured action log for every important action
-- Five reviewer-friendly transcripts and a short production writeup
+- Five reviewer-friendly transcripts, tests, and a short production writeup
 
 ## Architecture
 
-The code is intentionally split along the following boundaries for:
+The code is intentionally split along the following boundaries:
 
 - `src/server/adapters`
   - Platform adapter contract plus `MockUberAdapter`
@@ -40,16 +42,16 @@ The code is intentionally split along the following boundaries for:
   - Handles validated operations such as finding quotes, preparing a booking for confirmation, tracking, and cancelling
 - `src/server/agent`
   - Chat orchestration only
-  - Decides when to call tools and when to ask the user for confirmation
+  - Decides when to call tools, when to fall back to deterministic logic, and when to ask the user for confirmation
 - `src/server/confirmation-gate`
   - The only code path allowed to execute a booking
   - Requires an explicit approve or reject action for a prepared proposal
 - `src/server/logging`
   - Shared action logging used by tools and confirmation decisions
 - `src/server/store`
-  - Session state for the local demo UI
+  - In-memory session state for the local demo runtime
 - `src/app` and `src/components`
-  - Reviewer-facing UI and API routes
+  - Next.js App Router pages, route handlers, and the reviewer-facing React UI
 
 ## Why The Uber Backend Is Mocked
 
@@ -72,7 +74,7 @@ The confirmation story is deliberately explicit in both code and UI:
 - Chat can gather context, compare options, and prepare a booking proposal
 - Chat cannot directly call booking execution
 - Booking execution lives in `src/server/confirmation-gate`
-- The user must review the prepared booking and click `Confirm Ride`
+- The user must review the prepared booking and explicitly approve it in the confirmation flow
 - Rejecting the proposal clears it without creating a ride
 
 This makes the safety boundary easy to inspect during review and easy to extend later with stronger auth, approvals, or idempotency.
@@ -97,6 +99,7 @@ npm run dev
 npm run build
 npm run start
 npm run test
+npm run test:watch
 ```
 
 ## Review Artifacts
@@ -111,5 +114,7 @@ npm run test
 ## Notes
 
 - The backend uses a fixed set of recognizable San Francisco locations so the demo stays deterministic and easy to review.
-- Session state is in-memory for fast local setup; the audit log is persisted to disk for inspection.
-- The scope stays intentionally tight: no fancy NLP, no background jobs, and no unnecessary infrastructure.
+- The UI is built with the Next.js App Router and Tailwind CSS, while the stateful demo runtime remains intentionally lightweight.
+- Session state is kept in memory for fast local setup; the audit log is persisted to disk for inspection.
+- The optional OpenAI-backed brain layers natural-language responses on top of the deterministic booking flow instead of bypassing the safety boundary.
+- The scope stays intentionally tight: no background jobs, no external database, and no unnecessary infrastructure.
